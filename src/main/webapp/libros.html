@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<title>Gestión de libros</title>
+
+<link
+	href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+	rel="stylesheet">
+
+</head>
+
+
+<body class="bg-light">
+
+	<div class="container py-5">
+
+		<div
+			class="d-flex justify-content-between
+                align-items-center mb-4">
+
+			<div>
+				<h1>Libros</h1>
+
+				<p class="text-muted mb-0">CRUD mediante Servlets y XML</p>
+			</div>
+
+
+			<a href="libro.html" class="btn btn-primary"> Nuevo libro </a>
+
+		</div>
+
+
+		<div class="card shadow-sm">
+
+			<div class="card-body">
+
+				<table
+					class="table table-hover
+                          align-middle mb-0">
+
+					<thead class="table-dark">
+
+						<tr>
+
+							<th>ID</th>
+							<th>Titulo</th>
+							<th>Año de publicación</th>
+							<th class="text-end">Acciones</th>
+
+						</tr>
+
+					</thead>
+
+
+					<tbody id="tablaLibros">
+
+						<tr>
+
+							<td colspan="4" class="text-center text-muted">Cargando...</td>
+
+						</tr>
+
+					</tbody>
+
+				</table>
+
+			</div>
+
+		</div>
+
+	</div>
+
+
+	<script>
+
+const URL_LIBROS = "libros";
+
+
+async function cargarLibros() {
+
+    try {
+
+        /*
+         * GET /ej01_personas
+         */
+        const respuesta =
+            await fetch(URL_LIBROS);
+
+
+        const xml =
+            await respuesta.text();
+
+
+        /*
+         * Convertimos el texto recibido
+         * en un documento XML.
+         */
+        const documento =
+            new DOMParser()
+                .parseFromString(
+                    xml,
+                    "application/xml"
+                );
+
+
+        if (!respuesta.ok) {
+
+            const mensaje =
+                documento
+                    .querySelector("mensaje")
+                    ?.textContent
+                    || "Error al obtener los libros.";
+
+            mostrarError(mensaje);
+
+            return;
+        }
+
+
+        /*
+         * Obtenemos todos los elementos <persona>.
+         */
+        const libros =
+            documento.querySelectorAll("libro");
+
+
+        const tabla =
+            document.getElementById(
+                "tablaLibros"
+            );
+
+
+        tabla.innerHTML = "";
+
+
+        libros.forEach(libro => {
+
+            const id =
+            	libro.querySelector("id")
+                    .textContent;
+
+            const titulo =
+            	libro.querySelector("titulo")
+                    .textContent;
+
+            const anioPublicacion =
+            	libro.querySelector("anioPublicacion")
+                    .textContent;
+
+
+            const fila =
+                document.createElement("tr");
+
+
+            /*
+             * Creamos las celdas.
+             */
+            const celdaId =
+                document.createElement("td");
+
+            celdaId.textContent = id;
+
+
+            const celdaTitulo =
+                document.createElement("td");
+
+            celdaTitulo.textContent = titulo;
+
+
+            const celdaAnioPublicacion =
+                document.createElement("td");
+
+            celdaAnioPublicacion.textContent = anioPublicacion;
+
+
+            const celdaAcciones =
+                document.createElement("td");
+
+            celdaAcciones.className =
+                "text-end";
+
+
+            /*
+             * Botón "Ver / editar".
+             */
+            const enlace =
+                document.createElement("a");
+
+            enlace.href =
+                `libro.html?id=${id}`;
+
+            enlace.className =
+                "btn btn-sm btn-outline-primary me-2";
+
+            enlace.textContent =
+                "Ver / editar";
+
+
+            /*
+             * Botón "Eliminar".
+             */
+            const boton =
+                document.createElement("button");
+
+            boton.className =
+                "btn btn-sm btn-outline-danger";
+
+            boton.textContent =
+                "Eliminar";
+
+
+            boton.addEventListener(
+                "click",
+                () => eliminarLibro(id)
+            );
+
+
+            celdaAcciones.appendChild(enlace);
+            celdaAcciones.appendChild(boton);
+
+
+            fila.appendChild(celdaId);
+            fila.appendChild(celdaTitulo);
+            fila.appendChild(celdaAnioPublicacion);
+            fila.appendChild(celdaAcciones);
+
+
+            tabla.appendChild(fila);
+
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        mostrarError(
+            "No se ha podido conectar con el servidor."
+        );
+    }
+}
+
+
+async function eliminarLibro(id) {
+
+    if (!confirm(
+        "¿Seguro que quieres eliminar este libro?"
+    )) {
+
+        return;
+    }
+
+
+    try {
+
+        /*
+         * DELETE /ej01_personas/eliminar?id=2
+         */
+        const respuesta =
+            await fetch(
+                `${URL_LIBROS}/eliminar?id=${id}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+
+        const xml =
+            await respuesta.text();
+
+
+        const documento =
+            new DOMParser()
+                .parseFromString(
+                    xml,
+                    "application/xml"
+                );
+
+
+        if (!respuesta.ok) {
+
+            const mensaje =
+                documento.querySelector("mensaje")
+                    ?.textContent
+                || "No se ha podido eliminar.";
+
+            alert(mensaje);
+
+            return;
+        }
+
+
+        /*
+         * El Servlet ha devuelto XML.
+         */
+        const mensaje =
+            documento.querySelector("mensaje")
+                .textContent;
+
+
+        alert(mensaje);
+
+
+        /*
+         * Volvemos a cargar el listado.
+         */
+        cargarLibros();
+
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert(
+            "No se ha podido conectar con el servidor."
+        );
+    }
+}
+
+
+function mostrarError(mensaje) {
+
+    document.getElementById(
+        "tablaLibros"
+    ).innerHTML = `
+        <tr>
+            <td colspan="4"
+                class="text-center text-danger">
+                ${mensaje}
+            </td>
+        </tr>
+    `;
+}
+
+
+/*
+ * Cargamos la tabla al abrir la página.
+ */
+cargarLibros();
+
+</script>
+
+</body>
+
+</html>

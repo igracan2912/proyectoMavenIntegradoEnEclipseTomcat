@@ -8,104 +8,81 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Servlet encargado de modificar personas.
- *
- * Ejemplo:
- *
- * PUT /personas?id=2&nombre=Luis&edad=32
- */
 @WebServlet("/libros/modificar")
 public class LibroPutServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * Procesa las peticiones HTTP PUT.
-     */
-    @Override
-    protected void doPut(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doPut(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        // La respuesta será texto.
-        response.setContentType("text/plain;charset=UTF-8");
+		response.setContentType("application/xml;charset=UTF-8");
 
-        // Obtenemos el ID de la persona que queremos modificar.
-        String idParam = request.getParameter("id");
+		String idParam = request.getParameter("id");
 
-        // El ID es obligatorio.
-        if (idParam == null) {
+		if (idParam == null) {
 
-            response.setStatus(
-                    HttpServletResponse.SC_BAD_REQUEST
-            );
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-            response.getWriter().println(
-                    "Debe indicar el parámetro id."
-            );
+			response.getWriter().print(XmlUtil.error("Debe indicar el parámetro id."));
 
-            return;
-        }
+			return;
+		}
 
-        // Convertimos el ID de String a int.
-        int id = Integer.parseInt(idParam);
+		try {
 
-        // Buscamos la persona.
-        Libro libro =
-                ControladorLibro.buscarPorId(id);
+			int id = Integer.parseInt(idParam);
 
-        // Si no existe, devolvemos HTTP 404.
-        if (libro == null) {
+			Libro libro = ControladorLibro.buscarPorId(id);
 
-            response.setStatus(
-                    HttpServletResponse.SC_NOT_FOUND
-            );
+			if (libro == null) {
 
-            response.getWriter().println(
-                    "Libro no encontrado."
-            );
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-            return;
-        }
+				response.getWriter().print(XmlUtil.error("Libro no encontrado."));
 
-        /*
-         * Estos parámetros son opcionales.
-         * Solo modificamos los que se hayan recibido.
-         */
-        String titulo = request.getParameter("titulo");
-        String anioPublicacionParam = request.getParameter("anioPublicacion");
+				return;
+			}
 
-        if (titulo != null) {
-            libro.setTitulo(titulo);
-        }
+			String titulo = request.getParameter("titulo");
 
-        if (anioPublicacionParam != null) {
+			String anioPublicacionParam = request.getParameter("anioPublicacion");
 
-            int anioPublicacion = Integer.parseInt(anioPublicacionParam);
+			/*
+			 * Solo modificamos los datos que realmente hayan sido enviados.
+			 */
+			if (titulo != null) {
 
-            libro.setAnioPublicacion(anioPublicacion);
-        }
+				libro.setTitulo(titulo);
+			}
 
-        // La modificación se ha realizado correctamente.
-        response.setStatus(HttpServletResponse.SC_OK);
+			if (anioPublicacionParam != null) {
 
-        response.getWriter().println(
-                "Libro modificado correctamente."
-        );
+				int anioPublicacion = Integer.parseInt(anioPublicacionParam);
 
-        // Devolvemos los datos actuales de la persona.
-        response.getWriter().println(
-                "ID: " + libro.getId()
-        );
+				libro.setAnioPublicacion(anioPublicacion);
+			}
 
-        response.getWriter().println(
-                "Titulo: " + libro.getTitulo()
-        );
+			String xml = String.format(
+				    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+				    "<respuesta>\n" +
+				    "    <operacion>modificar</operacion>\n" +
+				    "    <mensaje>Libro modificado correctamente.</mensaje>\n" +
+				    "    %s\n" +
+				    "</respuesta>",
+				    XmlUtil.libro(libro)
+				);
 
-        response.getWriter().println(
-                "Año publicacion: " + libro.getAnioPublicacion()
-        );
-    }
+			response.setStatus(HttpServletResponse.SC_OK);
+
+			response.getWriter().print(xml);
+
+		} catch (NumberFormatException e) {
+
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+			response.getWriter().print(XmlUtil.error("El id y el año deben ser números enteros."));
+		}
+	}
 }

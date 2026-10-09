@@ -24,58 +24,57 @@ public class LibroDeleteServlet extends HttpServlet {
      * Procesa las peticiones HTTP DELETE.
      */
     @Override
-    protected void doDelete(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        // Devolvemos una respuesta de texto.
-        response.setContentType("text/plain;charset=UTF-8");
+		response.setContentType("application/xml;charset=UTF-8");
 
-        // Obtenemos el ID mediante un query parameter.
-        String idParam = request.getParameter("id");
+		String idParam = request.getParameter("id");
 
-        // El ID es necesario para localizar la persona.
-        if (idParam == null) {
+		if (idParam == null) {
 
-            response.setStatus(
-                    HttpServletResponse.SC_BAD_REQUEST
-            );
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-            response.getWriter().println(
-                    "Debe indicar el parámetro id."
-            );
+			response.getWriter().print(XmlUtil.error("Debe indicar el parámetro id."));
 
-            return;
-        }
+			return;
+		}
 
-        // Convertimos el ID de String a int.
-        int id = Integer.parseInt(idParam);
+		try {
 
-        // Intentamos eliminar la persona.
-        boolean eliminado =
-                ControladorLibro.eliminar(id);
+			int id = Integer.parseInt(idParam);
 
-        if (!eliminado) {
+			boolean eliminado = ControladorLibro.eliminar(id);
 
-            // No existe ninguna persona con ese ID.
-            response.setStatus(
-                    HttpServletResponse.SC_NOT_FOUND
-            );
+			if (!eliminado) {
 
-            response.getWriter().println(
-                    "Libro no encontrado."
-            );
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-            return;
-        }
+				response.getWriter().print(XmlUtil.error("Libro no encontrado."));
 
-        /*
-         * HTTP 204 indica que la operación ha sido correcta
-         * y que no hay contenido que devolver.
-         */
-        response.setStatus(
-                HttpServletResponse.SC_NO_CONTENT
-        );
-    }
+				return;
+			}
+
+			String plantilla = """
+			        <?xml version="1.0" encoding="UTF-8"?>
+			        <respuesta>
+			            <operacion>eliminar</operacion>
+			            <mensaje>Libro eliminado correctamente.</mensaje>
+			            <id>%s</id>
+			        </respuesta>
+			        """;
+
+			String xml = String.format(plantilla, id);
+
+			response.setStatus(HttpServletResponse.SC_OK);
+
+			response.getWriter().print(xml);
+
+		} catch (NumberFormatException e) {
+
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+			response.getWriter().print(XmlUtil.error("El parámetro id debe ser un número entero."));
+		}
+	}
 }

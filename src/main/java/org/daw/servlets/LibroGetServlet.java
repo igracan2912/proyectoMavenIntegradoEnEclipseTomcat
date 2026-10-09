@@ -26,100 +26,78 @@ public class LibroGetServlet extends HttpServlet {
      * Procesa las peticiones HTTP GET.
      */
     @Override
-    protected void doGet(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+	protected void doGet(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
+		// La respuesta del Servlet será XML.
+		response.setContentType("application/xml;charset=UTF-8");
 
-        // Indicamos que devolveremos HTML utilizando UTF-8.
-        response.setContentType("text/html;charset=UTF-8");
+		String idParam = request.getParameter("id");
 
-        // La consulta se ha realizado correctamente.
-        response.setStatus(HttpServletResponse.SC_OK);
+		/*
+		 * GET /ej01_personas
+		 *
+		 * No se ha indicado ID. Devolvemos todas las personas.
+		 */
+		if (idParam == null) {
 
-        /*
-         * Obtenemos el parámetro "id".
-         *
-         * Si no existe, getParameter() devuelve null.
-         */
-        String idParam = request.getParameter("id");
+			List<Libro> libros = ControladorLibro.listar();
 
-        response.getWriter().println("""
-            <!DOCTYPE html>
-            <html lang="es">
-            <head>
-                <meta charset="UTF-8">
-                <title>Libros</title>
-            </head>
-            <body>
-                <h1>Libros</h1>
-            """);
+			StringBuilder xml = new StringBuilder();
 
-        /*
-         * Si recibimos un ID, buscamos una persona concreta.
-         */
-        if (idParam != null) {
+			xml.append("""
+					<?xml version="1.0" encoding="UTF-8"?>
+					<libros>
+					""");
 
-            // Los parámetros HTTP llegan como String.
-            int id = Integer.parseInt(idParam);
+			for (Libro libro : libros) {
 
-            Libro libro =
-                    ControladorLibro.buscarPorId(id);
+				xml.append(XmlUtil.libro(libro));
+			}
 
-            if (libro == null) {
+			xml.append("</libros>");
 
-                // No existe ninguna persona con ese ID.
-                response.setStatus(
-                        HttpServletResponse.SC_NOT_FOUND
-                );
+			response.setStatus(HttpServletResponse.SC_OK);
 
-                response.getWriter().println(
-                        "<p>Libro no encontrado.</p>"
-                );
+			response.getWriter().print(xml);
 
-            } else {
+			return;
+		}
 
-                response.getWriter().println(
-                        "<h2>" + libro.getTitulo() + "</h2>"
-                );
+		/*
+		 * GET /ej01_personas?id=2
+		 *
+		 * Se ha indicado un ID.
+		 */
+		try {
 
-                response.getWriter().println(
-                        "<p>ID: " + libro.getId() + "</p>"
-                );
+			int id = Integer.parseInt(idParam);
 
-                response.getWriter().println(
-                        "<p>Año publicación: " + libro.getAnioPublicacion() + "</p>"
-                );
-            }
+			Libro libro = ControladorLibro.buscarPorId(id);
 
-        } else {
+			if (libro == null) {
 
-            // Sin ID, devolvemos todas las personas.
-            List<Libro> libros =
-                    ControladorLibro.listar();
+				response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 
-            response.getWriter().println("<ul>");
+				response.getWriter().print(XmlUtil.error("Libro no encontrado."));
 
-            for (Libro libro : libros) {
+				return;
+			}
 
-                response.getWriter().println(
-                    "<li>" +
-                    libro.getId() +
-                    " - " +
-                    libro.getTitulo() +
-                    " ( Año de publicación: " +
-                    libro.getAnioPublicacion() +
-                    " )" +
-                    "</li>"
-                );
-            }
+			String xml = String.format(
+					"<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n%s\n",
+					XmlUtil.libro(libro));
+			
+			
 
-            response.getWriter().println("</ul>");
-        }
+			response.setStatus(HttpServletResponse.SC_OK);
 
-        response.getWriter().println("""
-            </body>
-            </html>
-            """);
-    }
+			response.getWriter().print(xml);
+
+		} catch (NumberFormatException e) {
+
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+			response.getWriter().print(XmlUtil.error("El parámetro id debe ser un número entero."));
+		}
+	}
 }

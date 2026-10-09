@@ -8,66 +8,55 @@ import jakarta.servlet.http.HttpServlet;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 
-/**
- * Servlet encargado de crear personas.
- *
- * Ejemplo:
- *
- * POST /personas?nombre=Pedro&edad=35
- */
 @WebServlet("/libros/crear")
 public class LibroPostServlet extends HttpServlet {
 
-    private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;
 
-    /**
-     * Procesa las peticiones HTTP POST.
-     */
-    @Override
-    protected void doPost(
-            HttpServletRequest request,
-            HttpServletResponse response)
-            throws ServletException, IOException {
+	@Override
+	protected void doPost(HttpServletRequest request, HttpServletResponse response)
+			throws ServletException, IOException {
 
-        // Devolvemos una respuesta de texto.
-        response.setContentType("text/plain;charset=UTF-8");
+		response.setContentType("application/xml;charset=UTF-8");
 
-        // Obtenemos los datos enviados como query parameters.
-        String titulo = request.getParameter("titulo");
-        String anioPublicacionParam = request.getParameter("anioPublicacion");
+		String titulo = request.getParameter("titulo");
 
-        // Comprobamos que se hayan recibido los dos parámetros.
-        if (titulo == null || anioPublicacionParam == null) {
+		String anioPublicacionParam = request.getParameter("anioPublicacion");
 
-            response.setStatus(
-                    HttpServletResponse.SC_BAD_REQUEST
-            );
+		if (titulo == null || anioPublicacionParam == null) {
 
-            response.getWriter().println(
-                    "Faltan los parámetros titulo y anioPublicacion."
-            );
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
 
-            return;
-        }
+			response.getWriter().print(XmlUtil.error("Faltan los parámetros titulo y año."));
 
-        // Convertimos la edad de String a int.
-        int anioPublicacion = Integer.parseInt(anioPublicacionParam);
+			return;
+		}
 
-        // Creamos la nueva persona.
-        Libro libro =
-                ControladorLibro.crear(titulo, anioPublicacion);
+		try {
 
-        // HTTP 201 indica que se ha creado un nuevo recurso.
-        response.setStatus(
-                HttpServletResponse.SC_CREATED
-        );
+			int anioPublicacion = Integer.parseInt(anioPublicacionParam);
 
-        response.getWriter().println(
-                "Libro creado correctamente."
-        );
+			Libro libro = ControladorLibro.crear(titulo, anioPublicacion);
 
-        response.getWriter().println(
-                "ID asignado: " + libro.getId()
-        );
-    }
+			String xml = String.format(
+				    "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n" +
+				    "<respuesta>\n" +
+				    "    <operacion>crear</operacion>\n" +
+				    "    <mensaje>Libro creado correctamente.</mensaje>\n" +
+				    "    %s\n" +
+				    "</respuesta>",
+				    XmlUtil.libro(libro)
+				);
+
+			response.setStatus(HttpServletResponse.SC_CREATED);
+
+			response.getWriter().print(xml);
+
+		} catch (NumberFormatException e) {
+
+			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+
+			response.getWriter().print(XmlUtil.error("El año debe ser un número entero."));
+		}
+	}
 }
