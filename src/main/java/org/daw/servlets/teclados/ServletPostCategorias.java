@@ -24,6 +24,9 @@ public class ServletPostCategorias extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) 
 			throws ServletException, IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
 		
 		
         BufferedReader lector = request.getReader();
@@ -35,17 +38,6 @@ public class ServletPostCategorias extends HttpServlet {
         ObjectMapper mapper = new ObjectMapper();
         PostCategoriasRequestBody requestBody = mapper.readValue(sb.toString(), PostCategoriasRequestBody.class);
 		
-		
-		
-//		String strDescripcion = request.getParameter("descripcion");
-//		
-//		// Si no me dan una descripción, remito error 400 Bad Request
-//		if (strDescripcion == null) {
-//			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-//			response.getWriter().print(JSONUtils.toJSON(new Error("No ha especificado el parámetro"
-//					+ " 'descripcion'")));
-//			return;
-//		}
 		
 		// Si llego hasta aquí debo crear una nueva categoría
 		response.setStatus(HttpServletResponse.SC_OK);

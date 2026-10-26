@@ -11,44 +11,24 @@ import jakarta.servlet.http.HttpServletResponse;
 public class ServletDeleteTeclados extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 
-	/**
-	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
-	 */
-	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected void doDelete(HttpServletRequest request, HttpServletResponse response) 
+			throws ServletException, IOException {
 		
-		String strId = request.getParameter("id");
-		if (strId == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("Se necesita un parámetro 'id'")));
-			return;
-		}
-				
-		int id = -1;
-		try {
-			id = Integer.parseInt(strId);
-		}
-		catch (NumberFormatException ex) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("El parámetro 'id' debe tener un valor entero")));
-			return;
-		}
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
+		Integer id = Utils.getIntParameterWithCheck("id", request, response);
+		if (id == null) return;
 		
 		Teclado t = ControladorTeclado.getTeclado(id);
 		if (t == null) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
-			response.getWriter().print(JSONUtils.toJSON(new Error("El valor de 'id' no corresponde con algun teclado existente")));
+			response.getWriter().print(JSONUtils.toJSON(new Error("El valor de 'id' no corresponde con algún teclado existente")));
 			return;
 		}
 		
 		ControladorTeclado.getLista().remove(t);
 		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().print(JSONUtils.toJSON(t));
 	}
-
 }
-
-
-
-
-
-
-

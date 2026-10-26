@@ -24,7 +24,7 @@ public class ControladorCategoria {
 	private static int getMaxId () {
 		if (lista.size() == 0) return 1;
 		else {
-			int mayorId = lista.getFirst().getId();
+			int mayorId = lista.get(0).getId();
 			for (Categoria c : lista) {
 				if (c.getId() > mayorId) mayorId = c.getId();
 			}

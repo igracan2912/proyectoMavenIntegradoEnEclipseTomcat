@@ -26,6 +26,10 @@ public class ServletGetCategorias extends HttpServlet {
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
+		
 		StringBuffer sb = new StringBuffer();
 		
 		// Si recibo un parámetro de nombre "id" sólo debo devolver una única categoría, si existe

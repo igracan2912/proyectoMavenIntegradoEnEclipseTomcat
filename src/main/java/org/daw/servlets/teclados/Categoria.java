@@ -1,5 +1,6 @@
 package org.daw.servlets.teclados;
 
+
 public class Categoria {
 	private int id;
 	private String descripcion;

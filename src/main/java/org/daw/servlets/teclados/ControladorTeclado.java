@@ -3,7 +3,6 @@ package org.daw.servlets.teclados;
 import java.util.ArrayList;
 import java.util.List;
 
-import jakarta.servlet.http.HttpServletResponse;
 
 public class ControladorTeclado {
 
@@ -22,7 +21,7 @@ public class ControladorTeclado {
 
 	
 	private static int getMaxId () {
-		if (lista.size() == 0) return 1;
+		if (lista.isEmpty()) return 0;
 		else {
 			int mayorId = lista.get(0).getId();
 			for (Teclado t : lista) {

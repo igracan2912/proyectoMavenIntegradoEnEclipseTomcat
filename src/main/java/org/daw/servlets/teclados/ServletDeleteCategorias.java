@@ -18,6 +18,9 @@ public class ServletDeleteCategorias extends HttpServlet {
 	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
 	 */
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
 		
 		// Comprobar que recibo los datos necesarios
 		String strId = request.getParameter("id");

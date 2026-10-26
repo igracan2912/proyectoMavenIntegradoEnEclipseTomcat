@@ -18,6 +18,9 @@ public class ServletPutCategorias extends HttpServlet {
 	 * @see HttpServlet#doPut(HttpServletRequest, HttpServletResponse)
 	 */
 	protected void doPut(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		response.setContentType("application/json");
+		response.setCharacterEncoding("UTF-8");
+		
 		
 		// Comprobar que recibo los datos necesarios
 		String strId = request.getParameter("id");
