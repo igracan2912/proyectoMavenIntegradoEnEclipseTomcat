@@ -1,0 +1,14 @@
+services:
+  j2ee-json-ajax:
+    image: j2ee-json-ajax:latest
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GIT_BRANCH: 5_Comunicacion_JSON_AJAX
+
+    ports:
+      - "8080:8080"
+
+    restart: unless-stopped

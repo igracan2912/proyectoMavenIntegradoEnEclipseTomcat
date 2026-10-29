@@ -124,9 +124,20 @@
             }
         });
 
+        // Función segura para leer respuestas del Servlet aunque Tomcat devuelva HTML de error
+        async function leerRespuestaJSON(response) {
+            const texto = await response.text();
+            if (!texto || texto.trim() === '') return null;
+            try {
+                return JSON.parse(texto);
+            } catch (e) {
+                throw new Error(`El servidor devolvió un error HTTP ${response.status} (revisa la consola de Tomcat o que Jackson esté en WEB-INF/lib).`);
+            }
+        }
+
         // 1. Configurar vista y cargar datos con GET teclados?id=X si estamos editando
         async function configurarModoEdicion(id) {
-            document.getElementById('formTitle').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Teclado #${id}`;
+            document.getElementById('formTitle').innerHTML = `<i class="bi bi-pencil-square me-2"></i>Editar Teclado #${escaparHTML(id)}`;
             document.getElementById('formSubtitle').textContent = 'Modifica los parámetros del teclado seleccionado';
             document.getElementById('grupoId').style.display = 'block';
             btnGuardar.innerHTML = '<i class="bi bi-save me-1"></i> Actualizar Cambios';
@@ -140,13 +151,12 @@
                     headers: { 'Accept': 'application/json' }
                 });
 
-                const data = await response.json();
+                const data = await leerRespuestaJSON(response);
 
                 if (!response.ok) {
-                    throw new Error(data.message || data.error || `No se encontró el teclado con ID ${id}`);
+                    throw new Error((data && (data.mensaje || data.message || data.error)) || `No se encontró el teclado con ID ${id}`);
                 }
 
-                // Rellenar campos con las propiedades del objeto Teclado devuelto por el Servlet
                 document.getElementById('id').value = data.id;
                 document.getElementById('color').value = data.color;
                 document.getElementById('idioma').value = data.idioma;
@@ -175,7 +185,6 @@
                 let response;
 
                 if (modoEdicion) {
-                    // PUT: Enviamos los parámetros en la Query String para que request.getParameter() funcione en Tomcat
                     const queryParams = new URLSearchParams({
                         id: idParam,
                         color: color,
@@ -187,7 +196,6 @@
                         method: 'PUT'
                     });
                 } else {
-                    // POST: Enviamos como application/x-www-form-urlencoded estándar
                     const bodyParams = new URLSearchParams({
                         color: color,
                         idioma: idioma,
@@ -204,11 +212,10 @@
                 }
 
                 if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.message || errData.error || 'Error al procesar la solicitud en el servidor');
+                    const errData = await leerRespuestaJSON(response);
+                    throw new Error((errData && (errData.mensaje || errData.message || errData.error)) || 'Error al procesar la solicitud en el servidor');
                 }
 
-                // Redirigir al listado indicando la operación realizada
                 window.location.href = `teclados.html?msg=${modoEdicion ? 'modificado' : 'creado'}`;
 
             } catch (error) {
@@ -225,10 +232,19 @@
             container.innerHTML = `
                 <div class="alert alert-${tipo} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
                     <i class="bi bi-exclamation-octagon-fill me-2"></i>
-                    ${mensaje}
+                    ${escaparHTML(mensaje)}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;
+        }
+
+        function escaparHTML(texto) {
+            if (!texto) return '';
+            return String(texto)
+                .replace(/&/g, "&amp;")
+                .replace(/</g, "&lt;")
+                .replace(/>/g, "&gt;")
+                .replace(/"/g, "&quot;");
         }
     </script>
 </body>

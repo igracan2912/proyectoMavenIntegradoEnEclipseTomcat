@@ -1,4 +1,4 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados;
 
 
 import com.fasterxml.jackson.core.JsonProcessingException;

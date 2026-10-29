@@ -1,4 +1,4 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados.teclado;
 
 public class Teclado {
 	private int id;

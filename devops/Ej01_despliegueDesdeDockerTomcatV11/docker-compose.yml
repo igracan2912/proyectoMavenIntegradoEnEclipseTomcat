@@ -1,0 +1,8 @@
+services:
+  tomcat:
+    image: tomcat:11
+    container_name: tomcat11
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../../target/tutorial_Java2EE_SpringBoot-0.0.1-SNAPSHOT.war:/usr/local/tomcat/webapps/tutorial_Java2EE_SpringBoot.war

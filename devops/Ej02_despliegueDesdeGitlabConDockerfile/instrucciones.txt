@@ -1,0 +1,10 @@
+Ejecución normal
+
+docker compose up -d --build
+
+
+
+Si se encuentra problemas con caché:
+
+docker compose build --no-cache --progress=plain
+docker compose up -d --force-recreate

@@ -1,6 +1,12 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados.teclado;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
+import org.daw.servlets.categoriasYTeclados.Error;
+import org.daw.servlets.categoriasYTeclados.JSONUtils;
+import org.daw.servlets.categoriasYTeclados.Utils;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -20,14 +26,27 @@ public class ServletDeleteTeclados extends HttpServlet {
 		Integer id = Utils.getIntParameterWithCheck("id", request, response);
 		if (id == null) return;
 		
-		Teclado t = ControladorTeclado.getTeclado(id);
+		Teclado t = null;
+		try {
+			t = ControladorTeclado.getTeclado(id);
+		} catch (SQLException e) {
+			response.getWriter().print(JSONUtils.toJSON(new Error("Error en BD")));
+			e.printStackTrace();
+		}
+		
 		if (t == null) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.getWriter().print(JSONUtils.toJSON(new Error("El valor de 'id' no corresponde con algún teclado existente")));
 			return;
 		}
 		
-		ControladorTeclado.getLista().remove(t);
+		try {
+			ControladorTeclado.deleteTeclado(t.getId());
+		} catch (SQLException e) {
+			e.printStackTrace();
+			response.getWriter().print(JSONUtils.toJSON(new Error("Error en BD")));
+		}
+		
 		response.setStatus(HttpServletResponse.SC_OK);
 		response.getWriter().print(JSONUtils.toJSON(t));
 	}

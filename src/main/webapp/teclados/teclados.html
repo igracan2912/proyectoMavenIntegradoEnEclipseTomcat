@@ -112,7 +112,6 @@
         const deleteModal = new bootstrap.Modal(document.getElementById('deleteModal'));
 
         document.addEventListener('DOMContentLoaded', () => {
-            // Verificar si venimos de crear o modificar con éxito
             const params = new URLSearchParams(window.location.search);
             if (params.get('msg') === 'creado') {
                 mostrarAlerta('Teclado creado correctamente.', 'success');
@@ -125,6 +124,17 @@
             cargarTeclados();
         });
 
+        // Función segura para leer respuestas del Servlet aunque Tomcat devuelva HTML de error
+        async function leerRespuestaJSON(response) {
+            const texto = await response.text();
+            if (!texto || texto.trim() === '') return null;
+            try {
+                return JSON.parse(texto);
+            } catch (e) {
+                throw new Error(`El servidor devolvió un error HTTP ${response.status} (revisa la consola de Tomcat o que Jackson esté en WEB-INF/lib).`);
+            }
+        }
+
         // 1. GET: Obtener lista de teclados
         async function cargarTeclados() {
             mostrarCarga(true);
@@ -134,10 +144,10 @@
                     headers: { 'Accept': 'application/json' }
                 });
 
-                const data = await response.json();
+                const data = await leerRespuestaJSON(response);
 
                 if (!response.ok) {
-                    throw new Error(data.message || data.error || 'Error al obtener los teclados');
+                    throw new Error((data && (data.mensaje || data.message || data.error)) || `Error HTTP ${response.status} al obtener los teclados`);
                 }
 
                 renderizarTabla(data);
@@ -206,14 +216,13 @@
             if (!idAEliminar) return;
 
             try {
-                // El ServletDeleteTeclados lee request.getParameter("id"), por lo que lo pasamos por URL
                 const response = await fetch(`teclados/eliminar?id=${encodeURIComponent(idAEliminar)}`, {
                     method: 'DELETE'
                 });
 
                 if (!response.ok) {
-                    const errData = await response.json().catch(() => ({}));
-                    throw new Error(errData.message || errData.error || `Error al eliminar el teclado #${idAEliminar}`);
+                    const errData = await leerRespuestaJSON(response);
+                    throw new Error((errData && (errData.mensaje || errData.message || errData.error)) || `Error al eliminar el teclado #${idAEliminar}`);
                 }
 
                 deleteModal.hide();
@@ -239,7 +248,7 @@
             container.innerHTML = `
                 <div class="alert alert-${tipo} alert-dismissible fade show shadow-sm border-0 mb-4" role="alert">
                     <i class="bi ${tipo === 'success' ? 'bi-check-circle-fill' : 'bi-exclamation-octagon-fill'} me-2"></i>
-                    ${mensaje}
+                    ${escaparHTML(mensaje)}
                     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
                 </div>
             `;

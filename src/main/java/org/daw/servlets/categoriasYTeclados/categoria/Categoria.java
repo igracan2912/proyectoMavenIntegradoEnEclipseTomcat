@@ -1,4 +1,4 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados.categoria;
 
 
 public class Categoria {

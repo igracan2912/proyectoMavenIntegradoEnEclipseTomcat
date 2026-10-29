@@ -1,6 +1,12 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados.categoria;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
+import org.daw.servlets.categoriasYTeclados.Error;
+import org.daw.servlets.categoriasYTeclados.JSONUtils;
+import org.daw.servlets.categoriasYTeclados.Utils;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,31 +29,17 @@ public class ServletPutCategorias extends HttpServlet {
 		
 		
 		// Comprobar que recibo los datos necesarios
-		String strId = request.getParameter("id");
-		if (strId == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("Se necesita un parámetro 'id'")));
-			return;
-		}
+		int id = Utils.getIntParameterWithCheck("id", request, response);
 		
-		String strdescripcion = request.getParameter("descripcion");
-		if (strdescripcion == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("Se necesita un parámetro 'descripcion'")));
-			return;
-		}
+		String descripcion = Utils.getStringParameterWithCheck("descripcion", request, response);
 		
-		int id = -1;
+		Categoria c = null;
 		try {
-			id = Integer.parseInt(strId);
-		}
-		catch (NumberFormatException ex) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("El parámetro 'id' debe tener un valor entero")));
-			return;
+			c = ControladorCategoria.getCategoria(id);
+		} catch (SQLException e) {
+			e.printStackTrace();
 		}
 		
-		Categoria c = ControladorCategoria.getCategoria(id);
 		if (c == null) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.getWriter().print(JSONUtils.toJSON(new Error("El valor de 'id' no corresponde con alguna categoría existente")));
@@ -55,8 +47,15 @@ public class ServletPutCategorias extends HttpServlet {
 		}
 		
 		// Si llego hasta aquí significa que puedo sobrescribir los datos de la categoría
-		c.setDescripcion(strdescripcion);
+		c.setDescripcion(descripcion);
+		try {
+			ControladorCategoria.updateCategoria(c);
+		} catch (SQLException e) {
+			response.getWriter().print(JSONUtils.toJSON(new Error("Error en SQL")));
+			e.printStackTrace();
+		}
 		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().print(JSONUtils.toJSON(c));
 	}
 
 }

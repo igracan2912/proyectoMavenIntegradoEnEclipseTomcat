@@ -1,6 +1,12 @@
-package org.daw.servlets.teclados;
+package org.daw.servlets.categoriasYTeclados.categoria;
 
 import java.io.IOException;
+import java.sql.SQLException;
+
+import org.daw.servlets.categoriasYTeclados.Error;
+import org.daw.servlets.categoriasYTeclados.JSONUtils;
+import org.daw.servlets.categoriasYTeclados.Utils;
+
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
 import jakarta.servlet.http.HttpServlet;
@@ -23,24 +29,18 @@ public class ServletDeleteCategorias extends HttpServlet {
 		
 		
 		// Comprobar que recibo los datos necesarios
-		String strId = request.getParameter("id");
-		if (strId == null) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("Se necesita un parámetro 'id'")));
-			return;
-		}
-				
-		int id = -1;
+		Integer id = Utils.getIntParameterWithCheck("id", request, response);
+		if (id == null) return;
+		
+		Categoria c = null;
 		try {
-			id = Integer.parseInt(strId);
-		}
-		catch (NumberFormatException ex) {
-			response.setStatus(HttpServletResponse.SC_BAD_REQUEST);
-			response.getWriter().print(JSONUtils.toJSON(new Error("El parámetro 'id' debe tener un valor entero")));
+			c = ControladorCategoria.getCategoria(id);
+		} catch (SQLException e) {
+			response.getWriter().print(JSONUtils.toJSON(new Error("Error en SQL")));
+			e.printStackTrace();
 			return;
 		}
 		
-		Categoria c = ControladorCategoria.getCategoria(id);
 		if (c == null) {
 			response.setStatus(HttpServletResponse.SC_NOT_FOUND);
 			response.getWriter().print(JSONUtils.toJSON(new Error("El valor de 'id' no corresponde con alguna categoría existente")));
@@ -48,8 +48,15 @@ public class ServletDeleteCategorias extends HttpServlet {
 		}
 		
 		// Si llego hasta aquí significa que puedo sobrescribir los datos de la categoría
-		ControladorCategoria.getLista().remove(c);
+		try {
+			ControladorCategoria.deleteCategoria(c.getId());
+		} catch (SQLException e) {
+			response.getWriter().print(JSONUtils.toJSON(new Error("Error en SQL")));
+			e.printStackTrace();
+			return;
+		}
 		response.setStatus(HttpServletResponse.SC_OK);
+		response.getWriter().print(JSONUtils.toJSON(c));
 	}
 
 }
