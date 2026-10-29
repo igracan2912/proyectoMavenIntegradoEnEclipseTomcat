@@ -7,7 +7,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends git \
     && rm -rf /var/lib/apt/lists/*
 
-ARG GIT_BRANCH=5_comunicacion_JSON_AJAX
+ARG GIT_BRANCH=main
 
 WORKDIR /src
 

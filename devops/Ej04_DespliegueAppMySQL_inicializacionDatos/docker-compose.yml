@@ -1,0 +1,49 @@
+
+services:
+  mysqlService:
+    image: mysql:8.0
+    container_name: mysql2DAW_myRepository
+    restart: unless-stopped
+
+    ports:
+      - "3315:3306"
+
+    environment:
+      MYSQL_ROOT_PASSWORD: "1234"
+
+    volumes:
+      - mysql2daw_data:/var/lib/mysql
+      - ./initdb:/docker-entrypoint-initdb.d:ro
+
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-uroot", "-p1234"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+      start_period: 10s
+
+  j2ee-json-ajax:
+    image: j2ee-json-ajax:latest
+
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        GIT_BRANCH: main
+
+    environment:
+      DB_URL: jdbc:mysql://mysqlService:3306/categorias_teclados
+      DB_USER: root						
+      DB_PASSWORD: 1234
+
+    ports:
+      - "8080:8080"
+
+    restart: unless-stopped
+
+    depends_on:
+      mysqlService:
+        condition: service_healthy
+
+volumes:
+  mysql2daw_data:
