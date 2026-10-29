@@ -77,5 +77,17 @@ public class Utils{
 
 		return strParamValue;
 	}
+	
+	public static String obtenerVariableEntorno(String nombre) {
+	    String valor = System.getenv(nombre);
+
+	    if (valor == null) {
+	        throw new IllegalStateException(
+	            "La variable de entorno " + nombre + " es obligatoria."
+	        );
+	    }
+
+	    return valor;
+	}
 
 }

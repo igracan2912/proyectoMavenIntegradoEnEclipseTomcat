@@ -9,12 +9,14 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.daw.servlets.categoriasYTeclados.Utils;
+
 
 public class ControladorTeclado {
 
-	private static final String URL = "jdbc:mysql://localhost:3311/categorias_teclados";
-	private static final String USUARIO = "root";
-	private static final String PASSWORD = "1234";
+	private static final String URL = Utils.obtenerVariableEntorno("DB_URL");
+	private static final String USUARIO = Utils.obtenerVariableEntorno("DB_USER");
+	private static final String PASSWORD = Utils.obtenerVariableEntorno("DB_PASSWORD");
 
 	static {
 		try {
