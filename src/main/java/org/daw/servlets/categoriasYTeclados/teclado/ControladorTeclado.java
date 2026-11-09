@@ -9,7 +9,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.daw.servlets.categoriasYTeclados.Utils;
+import org.daw.servlets.Utils;
 
 
 public class ControladorTeclado {

@@ -4,8 +4,9 @@
   <artifactId>proyectoMavenIntegradoEnEclipseTomcat</artifactId>
   <version>0.0.1-SNAPSHOT</version>
   
+  <packaging>war</packaging>
+  
   <dependencies>
-
         <!--
             API de Jakarta Servlet utilizada por Tomcat 11.
 

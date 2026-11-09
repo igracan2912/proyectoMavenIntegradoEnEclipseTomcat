@@ -3,9 +3,9 @@ package org.daw.servlets.categoriasYTeclados.categoria;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import org.daw.servlets.categoriasYTeclados.Error;
-import org.daw.servlets.categoriasYTeclados.JSONUtils;
-import org.daw.servlets.categoriasYTeclados.Utils;
+import org.daw.servlets.Error;
+import org.daw.servlets.JSONUtils;
+import org.daw.servlets.Utils;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.annotation.WebServlet;
@@ -26,6 +26,9 @@ public class ServletDeleteCategorias extends HttpServlet {
 	protected void doDelete(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		response.setContentType("application/json");
 		response.setCharacterEncoding("UTF-8");
+		
+		 // Comprobamos si existe una sesión para el usuario.
+		if (!Utils.comprobarSesion(request, response)) return;
 		
 		
 		// Comprobar que recibo los datos necesarios

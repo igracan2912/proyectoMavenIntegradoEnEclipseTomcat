@@ -15,7 +15,7 @@ RUN git clone \
     --depth 1 \
     --single-branch \
     --branch "${GIT_BRANCH}" \
-    https://gitlab.com/tutorial-j2ee-spring-boot/j2ee-basis.git \
+    https://github.com/igracan2912/proyectoMavenIntegradoEnEclipseTomcat \
     .
 
 RUN mvn -B clean package
